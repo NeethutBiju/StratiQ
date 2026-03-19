@@ -1,4 +1,4 @@
-# StratiQ 🌱
+# StratiQ 
 ### AI-Powered Business Growth & Fundraising Platform
 
 > Connect vendors with investors. Generate AI marketing plans. Grow smarter.
