@@ -225,12 +225,11 @@ See the [Issues](../../issues) tab for current bugs and planned features.
 
 ## 👩‍💻 Authors
 
-**Neethu T Biju**
-GitHub: [NeethutBiju](https://github.com/NeethutBiju)
-**Iniya NJ**
-GitHub: [iniyanj2025cys-ctrl](https://github.com/iniyanj2025cys-ctrl)
-**Kavya Shree J**
-GitHub: [kavyashreej2025cys-cyber](https://github.com/kavyashreej2025cys-cyber)
----
+Neethu T Biju — [@NeethutBiju](https://github.com/NeethutBiju)
+
+Iniya NJ — [@iniyanj2025cys-ctrl](https://github.com/iniyanj2025cys-ctrl)
+
+Kavya Shree J — [@kavyashreej2025cys-cyber](https://github.com/kavyashreej2025cys-cyber)
+
 
 > *StratiQ — Democratising financial intelligence for every business in India.*
