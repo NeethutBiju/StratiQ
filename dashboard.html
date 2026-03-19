@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StatiQ - Financial Growth Plans</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                        "text-dark": "#0d1b0d",
+                        "text-light": "#f0fdf0",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const cfg = {
+    apiKey: "AIzaSyARQqXg3L8luRb01k-yn2chyiFWEbn_9iM",
+    authDomain: "startiq-ae6af.firebaseapp.com",
+    projectId: "startiq-ae6af",
+    storageBucket: "startiq-ae6af.appspot.com",
+    messagingSenderId: "1081848840736",
+    appId: "1:1081848840736:web:66b7b4c093cf41711a3245"
+  };
+  const app  = getApps().length ? getApps()[0] : initializeApp(cfg);
+  const auth = getAuth(app);
+
+  // Promise resolves with user (or null) once Firebase confirms auth state
+  window._authReady = new Promise(resolve => {
+    onAuthStateChanged(auth, user => {
+      window._currentUser = user || null;
+      resolve(user || null);
+
+      const loginBtn  = document.getElementById("navLoginBtn");
+      const logoutBtn = document.getElementById("navLogoutBtn");
+      if (user) {
+        if (loginBtn)  loginBtn.style.display = "none";
+        if (logoutBtn) logoutBtn.style.display = "flex";
+      } else {
+        if (loginBtn)  loginBtn.style.display = "flex";
+        if (logoutBtn) logoutBtn.style.display = "none";
+      }
+    });
+  });
+
+  window._stratiqSignOut = async function() {
+    await signOut(auth);
+    location.href = "login.html";
+  };
+</script>
+
+<script>
+  function showToast(msg) {
+    var toast = document.getElementById("toastMsg");
+    var txt   = document.getElementById("toastText");
+    if (!toast || !txt) return;
+    txt.textContent = msg;
+    toast.style.transform = "translateX(-50%) translateY(0)";
+    toast.style.opacity   = "1";
+    setTimeout(function() {
+      toast.style.transform = "translateX(-50%) translateY(5rem)";
+      toast.style.opacity   = "0";
+    }, 3500);
+  }
+
+  async function goToGrowthPlan() {
+    var user = await (window._authReady || Promise.resolve(null));
+    if (user) {
+      location.href = "buisness-form.html";
+    } else {
+      showToast("Please log in to access the Growth Plan");
+    }
+  }
+
+  async function goToFund() {
+    var user = await (window._authReady || Promise.resolve(null));
+    if (user) {
+      location.href = "fund.html";
+    } else {
+      showToast("Please log in to access Rise Fund");
+    }
+  }
+
+  function doLogout() {
+    if (window._stratiqSignOut) window._stratiqSignOut();
+  }
+</script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-dark dark:text-text-light font-display overflow-x-hidden antialiased">
+
+<!-- Toast Notification -->
+<div id="toastMsg"
+  style="position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(5rem); opacity:0; transition:all 0.3s ease; z-index:9999; background:#1a1a1a; color:white; font-size:0.875rem; font-weight:600; padding:0.75rem 1.5rem; border-radius:9999px; box-shadow:0 10px 40px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; gap:0.5rem; white-space:nowrap;">
+  <span class="material-symbols-outlined" id="toastIcon" style="color:#facc15; font-size:1.1rem;">lock</span>
+  <span id="toastText"></span>
+</div>
+<!-- Top Navigation Bar -->
+<nav class="sticky top-0 z-50 w-full border-b border-[#e7f3e7] dark:border-green-900 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+<div class="px-4 md:px-10 py-3 max-w-[1440px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-4 text-text-dark dark:text-primary">
+<div class="size-8 text-primary">
+
+
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em] text-text-dark dark:text-white">StratiQ</h2>
+</div>
+<div class="hidden lg:flex flex-1 justify-end gap-8 items-center">
+<div class="flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="contact.html" data-i18n="nav.contact">Contact</a>
+<a class="text-sm font-medium hover:text-primary transition-colors cursor-pointer" onclick="goToFund()" data-i18n="nav.riseFund">Rise Fund</a>
+<div class="relative group cursor-pointer flex items-center gap-1 text-sm font-medium hover:text-primary transition-colors">
+<span data-i18n="nav.language">Language</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+
+<!-- Simple hover dropdown for visual representation -->
+<div class="absolute top-full right-0 mt-2 w-32 bg-white dark:bg-green-900 shadow-lg rounded-lg p-2 hidden group-hover:block border border-green-100 dark:border-green-800">
+<div class="py-1 px-2 hover:bg-green-50 dark:hover:bg-green-800 rounded cursor-pointer" onclick="setLanguage('en')">English</div>
+<div class="py-1 px-2 hover:bg-green-50 dark:hover:bg-green-800 rounded cursor-pointer" onclick="setLanguage('ta')">Tamil</div>
+<div class="py-1 px-2 hover:bg-green-50 dark:hover:bg-green-800 rounded cursor-pointer" onclick="setLanguage('hi')">Hindi</div>
+</div>
+</div>
+</div>
+<!-- Login (shown when logged out) -->
+<a id="navLoginBtn" href="login.html"
+  class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-6 bg-primary hover:bg-[#0fd60f] transition-colors text-[#0d1b0d] text-sm font-bold tracking-[0.015em]">
+  Login
+</a>
+<!-- Logout (shown when logged in, hidden by default) -->
+<button id="navLogoutBtn" onclick="doLogout()"
+  class="hidden min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-6 bg-primary hover:bg-[#0fd60f] transition-colors text-[#0d1b0d] text-sm font-bold tracking-[0.015em]">
+  Logout
+</button>
+</div>
+<!-- Mobile Menu Icon -->
+<button class="lg:hidden text-text-dark dark:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative flex flex-col items-center justify-center w-full px-4 py-12 md:py-24 lg:py-32">
+<div class="layout-content-container flex flex-col max-w-[1200px] w-full gap-8">
+<div class="relative rounded-2xl overflow-hidden min-h-[500px] flex items-center justify-center p-8 bg-cover bg-center" data-alt="Abstract rising financial graph with green glowing lines" style='background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCCUo-GvwFl0G5s_Fj4D-jEwN637aY5hAeuROWwxSajcc4rkj1pbmCeAZC8vLetGB2tF4MOYI6kBgAKdq4-Dbsesf-s8CGSiNOq1k60Zec4qxVV_YfAvXsEuAfTNnSYC6q_Me_k3iN1MQY1cv_qDcUjOLIZDnVxI9qLdeRXmWJnlH8yVJi0esObpO1g8SYksZr4hYcxDK3wapw9LJDiw4dRS_4uj4Lz4k0dBOjk3j2rmu5Mz0Go6z1HHENTOY1zzCTnD4T0Em8BE38");'>
+<div class="flex flex-col gap-6 text-center max-w-[800px] z-10">
+<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em] md:text-5xl lg:text-6xl" data-i18n="hero.title">
+                        Growth is not just a goal;<br/>it's a habit.
+                    </h1>
+<h2 class="text-gray-200 text-lg md:text-xl font-medium leading-relaxed" data-i18n="hero.subtitle">
+                        Join thousands achieving their financial dreams with StratiQ.
+                    </h2>
+<div class="flex justify-center mt-4">
+<button id="growthPlanBtn" class="flex h-12 md:h-14 items-center justify-center rounded-xl bg-primary hover:bg-[#0fd60f] transition-all px-8 text-text-dark text-base md:text-lg font-bold shadow-lg shadow-primary/20 transform hover:-translate-y-0.5" onclick="goToGrowthPlan()">
+<span class="truncate" data-i18n="btn.getPlan">Get Growth Plan</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Stats Section -->
+<section class="w-full px-4 py-10 bg-white dark:bg-white/5 border-y border-green-100 dark:border-green-900">
+<div class="max-w-[1200px] mx-auto">
+<div class="flex flex-wrap justify-center gap-8 md:gap-12">
+<div class="flex min-w-[200px] flex-1 flex-col items-center text-center gap-2 p-4">
+<div class="p-3 bg-green-50 dark:bg-green-900/50 rounded-full mb-2">
+<span class="material-symbols-outlined text-primary text-3xl">assignment</span>
+</div>
+<p class="text-text-dark dark:text-gray-300 text-base font-medium" data-i18n="stats.plans">Plans Generated</p>
+<p class="text-text-dark dark:text-white text-3xl md:text-4xl font-black tracking-tight">10k+</p>
+</div>
+<div class="hidden md:block w-px bg-green-100 dark:bg-green-800"></div>
+<div class="flex min-w-[200px] flex-1 flex-col items-center text-center gap-2 p-4">
+<div class="p-3 bg-green-50 dark:bg-green-900/50 rounded-full mb-2">
+<span class="material-symbols-outlined text-primary text-3xl">account_balance</span>
+</div>
+<p class="text-text-dark dark:text-gray-300 text-base font-medium" data-i18n="stats.funds">Funds Managed</p>
+<p class="text-text-dark dark:text-white text-3xl md:text-4xl font-black tracking-tight">₹50Cr+</p>
+</div>
+<div class="hidden md:block w-px bg-green-100 dark:bg-green-800"></div>
+<div class="flex min-w-[200px] flex-1 flex-col items-center text-center gap-2 p-4">
+<div class="p-3 bg-green-50 dark:bg-green-900/50 rounded-full mb-2">
+<span class="material-symbols-outlined text-primary text-3xl">star</span>
+</div>
+<p class="text-text-dark dark:text-gray-300 text-base font-medium" data-i18n="stats.rating">User Rating</p>
+<p class="text-text-dark dark:text-white text-3xl md:text-4xl font-black tracking-tight">4.9/5</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Section (Mission) -->
+<section class="w-full px-4 py-16 md:py-24 bg-background-light dark:bg-background-dark">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-12">
+<div class="flex flex-col gap-6 text-center md:text-left md:flex-row md:justify-between md:items-end">
+<div class="flex flex-col gap-4 max-w-2xl">
+<h2 class="text-primary text-sm font-bold uppercase tracking-wider" data-i18n="mission.label">Our Mission</h2>
+<h1 class="text-text-dark dark:text-white text-3xl md:text-4xl lg:text-5xl font-bold leading-tight" data-i18n="mission.title">
+                        Democratizing financial intelligence for everyone.
+                    </h1>
+</div>
+<p class="text-gray-600 dark:text-gray-300 text-lg leading-relaxed max-w-lg" data-i18n="mission.desc">
+                    We provide accessible growth strategies regardless of your starting point, helping you make smarter decisions with your money.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
+<!-- Card 1 -->
+<div class="group flex flex-col gap-6 rounded-2xl border border-green-200 dark:border-green-800 bg-white dark:bg-green-950/20 p-8 hover:shadow-xl hover:shadow-green-900/5 transition-all duration-300 hover:-translate-y-1">
+<div class="size-12 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-size: 28px;">public</span>
+</div>
+<div class="flex flex-col gap-2">
+<h2 class="text-text-dark dark:text-white text-xl font-bold" data-i18n="cards.accessibility.title">Accessibility</h2>
+<p class="text-gray-600 dark:text-green-300/80 leading-relaxed" data-i18n="cards.accessibility.desc">Making sophisticated financial tools available to everyone, everywhere.</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group flex flex-col gap-6 rounded-2xl border border-green-200 dark:border-green-800 bg-white dark:bg-green-950/20 p-8 hover:shadow-xl hover:shadow-green-900/5 transition-all duration-300 hover:-translate-y-1">
+<div class="size-12 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-size: 28px;">psychology</span>
+</div>
+<div class="flex flex-col gap-2">
+<h2 class="text-text-dark dark:text-white text-xl font-bold" data-i18n="cards.intelligence.title">Intelligence</h2>
+<p class="text-gray-600 dark:text-green-300/80 leading-relaxed" data-i18n="cards.intelligence.desc">AI-powered data-driven insights for smarter, faster investment decisions.</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group flex flex-col gap-6 rounded-2xl border border-green-200 dark:border-green-800 bg-white dark:bg-green-950/20 p-8 hover:shadow-xl hover:shadow-green-900/5 transition-all duration-300 hover:-translate-y-1">
+<div class="size-12 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-size: 28px;">trending_up</span>
+</div>
+<div class="flex flex-col gap-2">
+<h2 class="text-text-dark dark:text-white text-xl font-bold" data-i18n="cards.strategy.title">Strategy</h2>
+<p class="text-gray-600 dark:text-green-300/80 leading-relaxed" data-i18n="cards.strategy.desc">Customized growth plans tailored to your individual financial profile.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Testimonial Carousel -->
+<section class="w-full px-4 py-16 bg-white dark:bg-white/5 border-t border-green-100 dark:border-green-900">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-10">
+<div class="flex items-center justify-between">
+<h2 class="text-2xl md:text-3xl font-bold text-text-dark dark:text-white" data-i18n="testimonials.title">Trusted by Thousands</h2>
+<div class="flex gap-2">
+<button class="size-10 rounded-full border border-green-200 dark:border-green-800 flex items-center justify-center text-text-dark dark:text-white hover:bg-green-50 dark:hover:bg-green-900" data-i18n-aria="testimonials.prev">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="size-10 rounded-full bg-primary text-text-dark flex items-center justify-center hover:bg-[#0fd60f]"  data-i18n-aria="testimonials.next">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="flex overflow-x-auto gap-6 pb-8 snap-x [-ms-scrollbar-style:none] [scrollbar-width:none] [&amp;::-webkit-scrollbar]:hidden">
+<!-- Review 1 -->
+<div class="min-w-[300px] md:min-w-[350px] snap-center flex flex-col gap-4 rounded-xl p-6 bg-background-light dark:bg-background-dark border border-green-100 dark:border-green-800/50">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="Portrait of Suresh Kumar smiling in a business shirt" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuACSH6MyytO4SgMrZcU5oXD5-4-DThKN9pW64k9O2v75vmEiGkNK25Qj78hSNp_RegmmnPbHOKc0_m88dWVIGlbgYXhSJ3hT_Imn5sC1BZVJeUD8Mc71GdT9DIDNcBDSQQETqbQ8tNyMmejkVrmKxjsj6rs59XZRE_AjLr81L5swhRAbuh0gpY9GxMg2rge4yW_16YSHiVEY_W8sTjcqFiR1TXA5sAErOrLDvTOfjfem2EshSw9njr204iIdf6w5ad6qS3-3N3eIo4");'></div>
+<div>
+<p class="text-text-dark dark:text-white text-base font-bold">Suresh Kumar</p>
+<div class="flex text-primary text-sm">
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+</div>
+</div>
+</div>
+<p class="text-gray-600 dark:text-gray-300 italic" data-i18n="reviews.suresh">"StratiQ helped me double my savings in a year! The personalized plan was exactly what I needed to get disciplined."</p>
+</div>
+<!-- Review 2 -->
+<div class="min-w-[300px] md:min-w-[350px] snap-center flex flex-col gap-4 rounded-xl p-6 bg-background-light dark:bg-background-dark border border-green-100 dark:border-green-800/50">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="Portrait of Anjali Rao smiling outdoors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCidHfL_ebbsM3XCdhIiBMGKSxfrWb42b_eseLDZgCCvLqYd1vxgAW4Dg24oMtN5PdZXBZgVBHha8cw1KbA9ArF84MjNta_cZnxxlsgduqa49piHWmKmHSvy_qdeGtnV8T5Rygn8NzIhj301QHOp7SjPGkF0TfDt371n93Dl8wepQbRdqnRwBDduZOeH1RRMasS4RcYEAgZf1_0u7ArXWNY3K2J5cCP3AdjjJj6LRBa7JsD1oKZiSOemjLGYYckFXoilhDlKSQRN34");'></div>
+<div>
+<p class="text-text-dark dark:text-white text-base font-bold">Anjali Rao</p>
+<div class="flex text-primary text-sm">
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star_half</span>
+</div>
+</div>
+</div>
+<p class="text-gray-600 dark:text-gray-300 italic" data-i18n="reviews.anjali">"The growth plans are incredibly easy to follow. I never thought investing could be this simple and transparent."</p>
+</div>
+<!-- Review 3 -->
+<div class="min-w-[300px] md:min-w-[350px] snap-center flex flex-col gap-4 rounded-xl p-6 bg-background-light dark:bg-background-dark border border-green-100 dark:border-green-800/50">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="Portrait of David John looking professional" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBavkrfzkrYING6wz8wIPvk6P9DLQvgKxeKWG9gQMglQYajKuccA_7ndbVXS_9aZy5jzX7nqPoT6kC_WueA-5LPD3PX9zPwvtVO0QrJlb8aulo8kWcWuIjYxaZU7DA2wdYSKMpRPvfpxu3202W2p8DFE_wma8f-0hrD318PaFqKrRDZmzboioKmDET_drUAh61WmRom5t8mlIH6yL0H6-kzAT_7EOFyFC97efxi9cn-QuHuogI_cv9kjNErIyeovssSKl4FRCsLs_8");'></div>
+<div>
+<p class="text-text-dark dark:text-white text-base font-bold">David John</p>
+<div class="flex text-primary text-sm">
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+</div>
+</div>
+</div>
+<p class="text-gray-600 dark:text-gray-300 italic" data-i18n="reviews.david">"Finally, financial advice that makes sense. The data-driven approach gave me the confidence to invest more."</p>
+</div>
+<!-- Review 4 -->
+<div class="min-w-[300px] md:min-w-[350px] snap-center flex flex-col gap-4 rounded-xl p-6 bg-background-light dark:bg-background-dark border border-green-100 dark:border-green-800/50">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-full bg-cover bg-center" data-alt="Portrait of Priya Sharma in office attire" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDv5EbT_QRFHf7pYOAms5qvwzVIouiTytxU9pigfvS8FNR6PHEJayy9-QL4BBaWQ3yJb0yGCmpgv-tX0jbE0bm_mQJ5AMpQhlM0fPAXvU_M5L8inoAmjBxVWoCDa3DSZUBeoWrz2bMlz-gLZe9ZT_nff6zmYcVTjabA8jq8rmcDF-3zlri_n81liShT19IASKACtYQr2oJD3kHLJRiVpSsm2Mf9hJXnrK2VbJ1T5RGwbhYwpxaRFJL9w1ogwEMVyUNSkyCvddCIS7M");'></div>
+<div>
+<p class="text-text-dark dark:text-white text-base font-bold">Priya Sharma</p>
+<div class="flex text-primary text-sm">
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+<span class="material-symbols-outlined text-[16px] fill-current">star</span>
+</div>
+</div>
+</div>
+<p class="text-gray-600 dark:text-gray-300 italic" data-i18n="reviews.priya">"I love the regional language support! It helped my parents understand their retirement planning better."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-background-light dark:bg-background-dark border-t border-green-100 dark:border-green-900 pt-16 pb-8 px-4">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-12">
+<div class="flex flex-col md:flex-row justify-between gap-10">
+<div class="flex flex-col gap-4 max-w-xs">
+<div class="flex items-center gap-2 text-text-dark dark:text-primary">
+<div class="size-6 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold text-text-dark dark:text-white">StratiQ</h2>
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400"  data-i18n="footer.tagline">Your partner in financial growth and intelligence.</p>
+</div>
+<div class="flex flex-wrap gap-12 md:gap-24">
+<div class="flex flex-col gap-4">
+<h3 class="text-text-dark dark:text-white font-bold" data-i18n="footer.company">Company</h3>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="footer.about">About Us</a>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="footer.careers">Careers</a>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="fund.html" data-i18n="nav.riseFund">Rise Fund</a>
+</div>
+<div class="flex flex-col gap-4">
+<h3 class="text-text-dark dark:text-white font-bold" data-i18n="footer.support">Support</h3>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="nav.contact">Contact</a>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="nav.feedback">Feedback</a>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="footer.faq">FAQ</a>
+</div>
+<div class="flex flex-col gap-4">
+<h3 class="text-text-dark dark:text-white font-bold" data-i18n="footer.legal">Legal</h3>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="footer.privacy">Privacy Policy</a>
+<a class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary" href="#" data-i18n="footer.terms">Terms of Service</a>
+</div>
+</div>
+</div>
+<div class="border-t border-green-100 dark:border-green-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-xs text-gray-500" data-i18n="footer.tagline">© 2024 StatiQ. All rights reserved.</p>
+<div class="flex gap-4">
+<!-- Social Icons placeholders -->
+<a class="text-gray-400 hover:text-primary transition-colors" href="#">
+<span class="sr-only" data-i18n="social.twitter">Twitter</span>
+<svg aria-hidden="true" class="h-5 w-5" fill="currentColor" viewbox="0 0 24 24">
+<path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"></path>
+</svg>
+</a>
+<a class="text-gray-400 hover:text-primary transition-colors" href="#">
+<span class="sr-only" data-i18n="social.linkedin">LinkedIn</span>
+<svg aria-hidden="true" class="h-5 w-5" fill="currentColor" viewbox="0 0 24 24">
+<path clip-rule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" fill-rule="evenodd"></path>
+</svg>
+</a>
+</div>
+</div>
+</div>
+</footer>
+<script>
+const translations = {
+  en: {
+    nav: {
+      contact: "Contact",
+      riseFund: "Rise Fund",
+      language: "Language"
+    },
+    btn: {
+      login: "Login",
+      getPlan: "Get Growth Plan"
+    },
+    hero: {
+      title: "Growth is not just a goal;<br/>it's a habit.",
+      subtitle: "Join thousands achieving their financial dreams with StatiQ."
+    },
+    stats: {
+      plans: "Plans Generated",
+      funds: "Funds Managed",
+      rating: "User Rating"
+    },
+    mission: {
+      label: "Our Mission",
+      title: "Democratizing financial intelligence for everyone.",
+      desc: "We provide accessible growth strategies regardless of your starting point, helping you make smarter decisions with your money."
+    },
+    cards: {
+      accessibility: {
+        title: "Accessibility",
+        desc: "Making sophisticated financial tools available to everyone, everywhere."
+      },
+      intelligence: {
+        title: "Intelligence",
+        desc: "AI-powered data-driven insights for smarter, faster investment decisions."
+      },
+      strategy: {
+        title: "Strategy",
+        desc: "Customized growth plans tailored to your individual financial profile."
+      }
+    },
+    testimonials: {
+      title: "Trusted by Thousands",
+      prev: "Previous testimonial",
+      next: "Next testimonial"
+    },
+    reviews: {
+      suresh: "“StatiQ helped me double my savings in a year! The personalized plan was exactly what I needed.”",
+      anjali: "“The growth plans are incredibly easy to follow. Investing feels simple now.”",
+      david: "“Finally, financial advice that makes sense. Data-driven and reliable.”",
+      priya: "“I love the regional language support! It helped my parents understand finances.”"
+    },
+    footer: {
+      company: "Company",
+      support: "Support",
+      legal: "Legal",
+      about: "About Us",
+      careers: "Careers",
+      faq: "FAQ",
+      privacy: "Privacy Policy",
+      terms: "Terms of Service",
+      tagline: "Your partner in financial growth and intelligence."
+    },
+    social: {
+      twitter: "Twitter",
+      linkedin: "LinkedIn"
+    }
+  },
+
+  ta: {
+    nav: {
+      contact: "தொடர்பு",
+      riseFund: "ரைஸ் ஃபண்ட்",
+      language: "மொழி"
+    },
+    btn: {
+      login: "உள்நுழை",
+      getPlan: "வளர்ச்சி திட்டம்"
+    },
+    hero: {
+      title: "வளர்ச்சி ஒரு இலக்கு அல்ல;<br/>அது ஒரு பழக்கம்.",
+      subtitle: "StatiQ உடன் உங்கள் நிதி கனவுகளை அடையுங்கள்."
+    },
+    stats: {
+      plans: "திட்டங்கள் உருவாக்கப்பட்டவை",
+      funds: "நிர்வகிக்கப்படும் நிதி",
+      rating: "பயனர் மதிப்பீடு"
+    },
+    mission: {
+      label: "எங்கள் நோக்கம்",
+      title: "எல்லோருக்கும் நிதி அறிவை எளிதாக்குதல்.",
+      desc: "உங்கள் ஆரம்ப நிலை எதுவாக இருந்தாலும், புத்திசாலித்தனமான நிதி முடிவுகளை எடுக்க உதவும் வளர்ச்சி உத்திகளை நாங்கள் வழங்குகிறோம்."
+    },
+    cards: {
+      accessibility: {
+        title: "அணுகல்தன்மை",
+        desc: "உயர்தர நிதி கருவிகளை அனைவருக்கும் எளிதாக்குதல்."
+      },
+      intelligence: {
+        title: "நுண்ணறிவு",
+        desc: "AI மூலம் இயக்கப்படும் தரவின் அடிப்படையிலான நிதி முடிவுகள்."
+      },
+      strategy: {
+        title: "திட்டம்",
+        desc: "உங்கள் நிதி நிலைக்கு ஏற்ப தனிப்பயன் வளர்ச்சி திட்டங்கள்."
+      }
+    },
+    testimonials: {
+      title: "ஆயிரக்கணக்கானோர் நம்பிக்கை",
+      prev: "முந்தைய கருத்து",
+      next: "அடுத்த கருத்து"
+    },
+    reviews: {
+      suresh: "“StatiQ என் சேமிப்பை ஒரு ஆண்டில் இரட்டிப்பாக்க உதவியது!”",
+      anjali: "“முதலீடு இப்போது எளிதாக உணரப்படுகிறது.”",
+      david: "“நம்பகமான மற்றும் தெளிவான நிதி ஆலோசனை.”",
+      priya: "“மொழி ஆதரவு மிகவும் பயனுள்ளது!”"
+    },
+    footer: {
+      company: "நிறுவனம்",
+      support: "ஆதரவு",
+      legal: "சட்டம்",
+      about: "எங்களை பற்றி",
+      careers: "வேலை வாய்ப்புகள்",
+      faq: "அடிக்கடி கேட்கப்படும் கேள்விகள்",
+      privacy: "தனியுரிமைக் கொள்கை",
+      terms: "சேவை விதிமுறைகள்",
+      tagline: "உங்கள் நிதி வளர்ச்சிக்கான நம்பகமான கூட்டாளி."
+    },
+    social: {
+      twitter: "ட்விட்டர்",
+      linkedin: "லிங்க்ட்இன்"
+    }
+  },
+
+  hi: {
+    nav: {
+      contact: "संपर्क",
+      riseFund: "राइज फंड",
+      language: "भाषा"
+    },
+    btn: {
+      login: "लॉगिन",
+      getPlan: "ग्रोथ प्लान"
+    },
+    hero: {
+      title: "विकास सिर्फ एक लक्ष्य नहीं;<br/>यह एक आदत है।",
+      subtitle: "StatiQ के साथ अपने वित्तीय सपनों को पूरा करें।"
+    },
+    stats: {
+      plans: "तैयार की गई योजनाएँ",
+      funds: "प्रबंधित निधि",
+      rating: "उपयोगकर्ता रेटिंग"
+    },
+    mission: {
+      label: "हमारा मिशन",
+      title: "सभी के लिए वित्तीय ज्ञान सुलभ बनाना।",
+      desc: "आपकी शुरुआती स्थिति चाहे जो भी हो, बेहतर वित्तीय निर्णय लेने में मदद करने वाली विकास रणनीतियाँ हम प्रदान करते हैं।"
+    },
+    cards: {
+      accessibility: {
+        title: "सुलभता",
+        desc: "उन्नत वित्तीय टूल्स को हर व्यक्ति तक पहुँचाना।"
+      },
+      intelligence: {
+        title: "बुद्धिमत्ता",
+        desc: "तेज़ और समझदारी भरे निवेश के लिए एआई आधारित विश्लेषण।"
+      },
+      strategy: {
+        title: "रणनीति",
+        desc: "आपकी वित्तीय स्थिति के अनुसार बनाई गई योजनाएँ।"
+      }
+    },
+    testimonials: {
+      title: "हज़ारों लोगों का भरोसा",
+      prev: "पिछला प्रशंसापत्र",
+      next: "अगला प्रशंसापत्र"
+    },
+    reviews: {
+      suresh: "“StatiQ ने एक साल में मेरी बचत दोगुनी कर दी।”",
+      anjali: "“निवेश अब बहुत सरल लगता है।”",
+      david: "“विश्वसनीय और समझने योग्य वित्तीय मार्गदर्शन।”",
+      priya: "“क्षेत्रीय भाषा समर्थन बहुत उपयोगी है।”"
+    },
+    footer: {
+      company: "कंपनी",
+      support: "सहायता",
+      legal: "कानूनी",
+      about: "हमारे बारे में",
+      careers: "करियर",
+      faq: "अक्सर पूछे जाने वाले प्रश्न",
+      privacy: "गोपनीयता नीति",
+      terms: "सेवा की शर्तें",
+      tagline: "आपकी वित्तीय वृद्धि और समझदारी का विश्वसनीय साथी।"
+    },
+    social: {
+      twitter: "ट्विटर",
+      linkedin: "लिंक्डइन"
+    }
+  }
+};
+
+function setLanguage(lang) {
+  localStorage.setItem("lang", lang);
+  applyLanguage(lang);
+}
+
+function applyLanguage(lang) {
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const keys = el.dataset.i18n.split(".");
+    let text = translations[lang];
+    keys.forEach(k => text = text?.[k]);
+    if (text) el.innerHTML = text;
+  });
+
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => {
+    const keys = el.dataset.i18nAria.split(".");
+    let text = translations[lang];
+    keys.forEach(k => text = text?.[k]);
+    if (text) el.setAttribute("aria-label", text);
+  });
+}
+
+// Load saved language
+applyLanguage(localStorage.getItem("lang") || "en");
+</script>
+</body>
+</html>

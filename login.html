@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – StratiQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .spinning { animation: spin 0.8s linear infinite; display: inline-block; }
+  </style>
+</head>
+<body style="font-family:'Manrope',sans-serif;background:linear-gradient(135deg,#0d1b0d,#102210,#0a150a);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;margin:0">
+
+  <div style="width:100%;max-width:420px">
+
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:2rem">
+      <svg width="32" height="32" fill="#13ec13" viewBox="0 0 48 48">
+        <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z"/>
+      </svg>
+      <span style="color:white;font-size:1.5rem;font-weight:900;letter-spacing:-0.5px">StratiQ</span>
+    </div>
+
+    <!-- Card -->
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:1rem;padding:2rem;box-shadow:0 25px 50px rgba(0,0,0,0.5)">
+
+      <h1 style="color:white;font-size:1.4rem;font-weight:800;margin:0 0 0.25rem">Welcome back</h1>
+      <p style="color:#9ca3af;font-size:0.875rem;margin:0 0 1.5rem">Sign in to your account to continue</p>
+
+      <!-- Error -->
+      <div id="authError" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;font-size:0.8rem;padding:0.75rem 1rem;border-radius:0.5rem;margin-bottom:1rem"></div>
+
+      <!-- Email -->
+      <div style="margin-bottom:1rem">
+        <label style="color:#d1d5db;font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.4rem">Email address</label>
+        <div style="position:relative">
+          <span class="material-symbols-outlined" style="position:absolute;left:0.75rem;top:0.75rem;color:#6b7280;font-size:1.2rem">mail</span>
+          <input id="email" type="email" placeholder="you@example.com"
+            style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:white;padding:0.75rem 1rem 0.75rem 2.5rem;border-radius:0.5rem;font-size:0.875rem;box-sizing:border-box;outline:none"
+            onfocus="this.style.borderColor='#13ec13'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+            onkeydown="if(event.key==='Enter') doLogin()"/>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div style="margin-bottom:1.5rem">
+        <label style="color:#d1d5db;font-size:0.8rem;font-weight:600;display:block;margin-bottom:0.4rem">Password</label>
+        <div style="position:relative">
+          <span class="material-symbols-outlined" style="position:absolute;left:0.75rem;top:0.75rem;color:#6b7280;font-size:1.2rem">lock</span>
+          <input id="password" type="password" placeholder="Enter your password"
+            style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:white;padding:0.75rem 1rem 0.75rem 2.5rem;border-radius:0.5rem;font-size:0.875rem;box-sizing:border-box;outline:none"
+            onfocus="this.style.borderColor='#13ec13'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"
+            onkeydown="if(event.key==='Enter') doLogin()"/>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button id="loginBtn" onclick="doLogin()"
+        style="width:100%;background:#13ec13;color:#0d1b0d;font-weight:800;padding:0.875rem;border-radius:0.5rem;font-size:0.9rem;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem"
+        onmouseover="this.style.background='#0fd60f'" onmouseout="this.style.background='#13ec13'">
+        Sign In
+        <span class="material-symbols-outlined" style="font-size:1rem">arrow_forward</span>
+      </button>
+
+      <p style="text-align:center;color:#9ca3af;font-size:0.8rem;margin-top:1.25rem">
+        Don't have an account?
+        <a href="register.html" style="color:#13ec13;font-weight:700;text-decoration:none">Create one</a>
+      </p>
+    </div>
+
+    <p style="text-align:center;color:#4b5563;font-size:0.7rem;margin-top:1.5rem">© 2024 StratiQ Financial. All rights reserved.</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const app  = initializeApp({
+      apiKey: "AIzaSyARQqXg3L8luRb01k-yn2chyiFWEbn_9iM",
+      authDomain: "startiq-ae6af.firebaseapp.com",
+      projectId: "startiq-ae6af",
+      storageBucket: "startiq-ae6af.appspot.com",
+      messagingSenderId: "1081848840736",
+      appId: "1:1081848840736:web:66b7b4c093cf41711a3245"
+    });
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    window.doLogin = async function() {
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn      = document.getElementById("loginBtn");
+      const errEl    = document.getElementById("authError");
+
+      errEl.style.display = "none";
+
+      if (!email)    return showErr("Please enter your email.");
+      if (!password) return showErr("Please enter your password.");
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined spinning">refresh</span>&nbsp;Signing in...';
+      btn.style.opacity = "0.7";
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+
+        // Read role from Firestore to redirect correctly
+        let role = "vendor"; // default
+        try {
+          const snap = await getDoc(doc(db, "users", cred.user.uid));
+          if (snap.exists() && snap.data().role) {
+            role = snap.data().role;
+          }
+        } catch(e) {
+          console.warn("Could not read role (check Firestore rules):", e.message);
+        }
+
+        window.location.href = role === "investor" ? "investordashboard.html" : "dashboard.html";
+
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In <span class="material-symbols-outlined" style="font-size:1rem">arrow_forward</span>';
+        btn.style.opacity = "1";
+
+        if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password")
+          showErr("Wrong email or password. Please try again.");
+        else if (err.code === "auth/user-not-found")
+          showErr("No account found. Please register first.");
+        else if (err.code === "auth/invalid-email")
+          showErr("Please enter a valid email address.");
+        else if (err.code === "auth/too-many-requests")
+          showErr("Too many attempts. Please wait a moment and try again.");
+        else
+          showErr(err.message.replace("Firebase: ","").replace(/\(.*\)/,"").trim());
+      }
+    };
+
+    function showErr(msg) {
+      const el = document.getElementById("authError");
+      el.textContent = msg;
+      el.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>

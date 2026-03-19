@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Business Profile – StratiQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: "#13ec13" },
+          fontFamily: { display: ["Manrope", "sans-serif"] }
+        }
+      }
+    }
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const app  = initializeApp({
+      apiKey: "AIzaSyARQqXg3L8luRb01k-yn2chyiFWEbn_9iM",
+      authDomain: "startiq-ae6af.firebaseapp.com",
+      projectId: "startiq-ae6af",
+      storageBucket: "startiq-ae6af.appspot.com",
+      messagingSenderId: "1081848840736",
+      appId: "1:1081848840736:web:66b7b4c093cf41711a3245"
+    });
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    window.logout = async function() {
+      await signOut(auth);
+      location.href = "login.html";
+    };
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) { location.href = "login.html"; return; }
+
+      document.getElementById("userName").textContent = user.displayName || user.email;
+
+      try {
+        const profileSnap = await getDoc(doc(db, "business_profiles", user.uid));
+        if (profileSnap.exists()) {
+          const d = profileSnap.data();
+          if (d.name) document.getElementById("businessName").value = d.name;
+          if (d.type) {
+            document.getElementById("businessType").value = d.type;
+            const card = document.querySelector(`.type-card input[value="${d.type}"]`);
+            if (card) selectType(card.closest(".type-card"), d.type);
+          }
+          if (d.budget) document.getElementById("budget").value = d.budget;
+          if (d.mode) {
+            const modeCard = document.querySelector(`.mode-card input[value="${d.mode}"]`);
+            if (modeCard) selectMode(modeCard.closest(".mode-card"));
+          }
+        }
+      } catch(e) { /* rules not set yet — skip pre-fill */ }
+    });
+
+    window.saveProfile = async function(btn) {
+      const name = document.getElementById("businessName").value.trim();
+      const type = document.getElementById("businessType").value;
+      const budget = document.getElementById("budget").value;
+      const mode = document.querySelector('input[name="business_mode"]:checked')?.value;
+      const extra = document.getElementById("extraDetails").value.trim();
+      const errorEl = document.getElementById("formError");
+
+      errorEl.classList.add("hidden");
+
+      if (!name) { errorEl.textContent = "Please enter your business name."; errorEl.classList.remove("hidden"); return; }
+      if (!type) { errorEl.textContent = "Please select a business category."; errorEl.classList.remove("hidden"); return; }
+      if (!budget || budget < 1) { errorEl.textContent = "Please enter your monthly budget."; errorEl.classList.remove("hidden"); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">refresh</span> Saving...';
+
+      try {
+        const user = auth.currentUser;
+        await setDoc(doc(db, "business_profiles", user.uid), {
+          name, type, budget: Number(budget), mode: mode || "online", extra,
+          updatedAt: new Date()
+        });
+
+        document.getElementById("profileSection").classList.add("hidden");
+        document.getElementById("aiSection").classList.remove("hidden");
+        document.getElementById("step2dot").className = "w-8 h-8 rounded-full bg-[#13ec13] text-[#0d1b0d] font-black text-sm flex items-center justify-center";
+        document.getElementById("stepLine").className = "flex-1 h-0.5 bg-[#13ec13]";
+
+        generatePlan({ name, type, budget: Number(budget), mode: mode || "online", extra });
+
+      } catch (err) {
+        errorEl.textContent = "Error saving: " + err.message;
+        errorEl.classList.remove("hidden");
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-base">auto_awesome</span> Save & Generate AI Plan';
+      }
+    };
+
+    async function generatePlan(data) {
+      const planEl = document.getElementById("aiPlan");
+      planEl.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10 gap-3 text-gray-400">
+          <span class="material-symbols-outlined text-[#13ec13] text-4xl" style="animation: spin 1s linear infinite;">refresh</span>
+          <p class="text-sm font-semibold">Claude AI is analysing your business...</p>
+          <p class="text-xs text-gray-600">Generating a real personalised plan just for you</p>
+        </div>`;
+
+      const typeLabel = data.type === "retail" ? "Retail / Shop" : data.type === "service" ? "Service / Agency" : "Tech Startup";
+      const modeLabel = data.mode === "online" ? "Online / Digital" : "Physical Store";
+      const fmt = n => "₹" + Math.round(n).toLocaleString("en-IN");
+
+      const prompt = `You are an expert business growth consultant and digital marketing strategist specialising in Indian markets.
+
+A business owner has provided the following details:
+- Business Name: ${data.name}
+- Business Type: ${typeLabel}
+- Operation Mode: ${modeLabel}
+- Monthly Marketing Budget: ${fmt(data.budget)}
+${data.extra ? `- Additional Details: ${data.extra}` : ""}
+
+Generate a comprehensive, highly specific AI growth and advertising plan for THIS exact business. Use every detail provided — especially the additional details — to make this plan uniquely tailored to "${data.name}". Reference the specific products, audience, location, or challenges they mentioned.
+
+Respond ONLY with a valid JSON object in this exact structure (no markdown, no backticks, just raw JSON):
+{
+  "summary": "2-3 sentence executive summary specific to this business and budget",
+  "strategy": [
+    { "icon": "storefront", "title": "Strategy Title", "desc": "Specific actionable description mentioning the business name or type" },
+    { "icon": "campaign", "title": "Strategy Title", "desc": "..." },
+    { "icon": "group", "title": "Strategy Title", "desc": "..." },
+    { "icon": "trending_up", "title": "Strategy Title", "desc": "..." },
+    { "icon": "star", "title": "Strategy Title", "desc": "..." }
+  ],
+  "adChannels": [
+    { "name": "Channel Name", "budget": 15000, "tip": "Specific tip for this business type and budget" },
+    { "name": "Channel Name", "budget": 10000, "tip": "..." },
+    { "name": "Channel Name", "budget": 8000, "tip": "..." },
+    { "name": "Channel Name", "budget": 7000, "tip": "..." },
+    { "name": "Channel Name", "budget": 5000, "tip": "..." }
+  ],
+  "profitTips": [
+    "Specific profit tip 1 for this business",
+    "Specific profit tip 2",
+    "Specific profit tip 3",
+    "Specific profit tip 4",
+    "Specific profit tip 5"
+  ],
+  "milestones": [
+    { "period": "Week 1–2", "action": "Specific action for this business" },
+    { "period": "Week 3–4", "action": "..." },
+    { "period": "Month 2", "action": "..." },
+    { "period": "Month 3", "action": "..." }
+  ],
+  "kpis": [
+    { "label": "KPI Name", "value": "Target Value", "sub": "explanation" },
+    { "label": "KPI Name", "value": "Target Value", "sub": "explanation" },
+    { "label": "KPI Name", "value": "Target Value", "sub": "explanation" }
+  ]
+}
+
+The adChannels budgets must add up to exactly ${data.budget}. Use Indian marketing context (Instagram, WhatsApp, Google, Meesho, JioCinema, etc. where relevant). Be specific, practical and actionable.`;
+
+      try {
+        // ── Try Anthropic API ────────────────────────────────────────
+        // NOTE: Replace YOUR_API_KEY below with your actual Anthropic API key
+        // Get one free at: https://console.anthropic.com
+        // ──────────────────────────────────────────────────────────────
+        // 🔑 ADD YOUR ANTHROPIC API KEY HERE to enable live AI plans
+        // Get a free key at: https://console.anthropic.com
+        // Leave blank ("") to use the Smart Analysis fallback instead
+        // ──────────────────────────────────────────────────────────────
+        const API_KEY = ""; // ← paste your key here e.g. "sk-ant-xxxxx"
+
+        if (API_KEY === "YOUR_ANTHROPIC_API_KEY") {
+          throw new Error("NO_KEY");
+        }
+
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-calls": "true"
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1500,
+            messages: [{ role: "user", content: prompt }]
+          })
+        });
+
+        const result = await response.json();
+        const rawText = result.content?.[0]?.text || "";
+
+        let p;
+        try {
+          p = JSON.parse(rawText.replace(/```json|```/g, "").trim());
+        } catch(e) {
+          throw new Error("AI returned invalid response. Please try again.");
+        }
+
+        // Render the AI-generated plan
+        renderPlanHTML(planEl, data, p, fmt, typeLabel, modeLabel, true);
+
+      } catch (err) {
+        // If no API key set, generate a smart dynamic plan using business data
+        if (err.message === "NO_KEY" || err.message.includes("CORS") || err.message.includes("fetch") || err.message.includes("network")) {
+          renderSmartPlan(data, planEl, fmt, typeLabel, modeLabel);
+        } else {
+          planEl.innerHTML = `
+            <div class="text-center py-8">
+              <span class="material-symbols-outlined text-yellow-400 text-4xl block mb-3">warning</span>
+              <p class="text-white font-bold text-sm mb-1">API Key Required for Live AI</p>
+              <p class="text-gray-400 text-xs mb-4 max-w-xs mx-auto">To enable real Claude AI plans, add your Anthropic API key to the code.<br>Get a free key at <a href="https://console.anthropic.com" target="_blank" class="text-[#13ec13] underline">console.anthropic.com</a></p>
+              <button onclick="renderSmartPlan(window._lastPlanData, document.getElementById('aiPlan'), n => '₹'+Math.round(n).toLocaleString('en-IN'), '${typeLabel}', '${modeLabel}')" 
+                class="bg-[#13ec13] text-[#0d1b0d] font-bold px-5 py-2.5 rounded-xl text-sm">
+                Generate Smart Plan Instead
+              </button>
+            </div>`;
+        }
+      }
+
+      window._lastPlanData = data;
+    }
+    window.generatePlan = generatePlan;
+
+    // Smart dynamic plan — uses actual business data to generate unique recommendations
+    window.renderSmartPlan = function(data, planEl, fmt, typeLabel, modeLabel) {
+      if (!data || !planEl) return;
+      const B = Number(data.budget);
+      const name = data.name;
+      const isOnline = data.mode === "online";
+
+      const plans = {
+        retail: {
+          summary: `${name} is a ${modeLabel.toLowerCase()} retail business with a ${fmt(B)}/month marketing budget.${data.extra ? " " + data.extra.slice(0, 120) + (data.extra.length > 120 ? "…" : "") : ""} The priority is building local visibility, driving repeat purchases, and using every rupee efficiently across Instagram, WhatsApp, and Google to grow both walk-in and online sales.`,
+          strategy: [
+            { icon: "storefront", title: "Google My Business for " + name, desc: `Claim and fully optimise the Google Business Profile for ${name}. Upload at least 20 product photos, collect 10+ reviews, and post weekly offers. This is free and puts ${name} on Google Maps for every nearby customer searching your category.` },
+            { icon: "photo_camera", title: isOnline ? "Instagram & Facebook Ads" : "Hyperlocal Instagram Ads", desc: `Post 5x per week for ${name} — product reels, unboxing videos, customer reviews. Run ₹${Math.round(B*0.35/30)}/day ads targeting ${isOnline ? "interest-based audiences across India" : "customers within 15km of your store"}. Reels get 3x more reach than static posts.` },
+            { icon: "chat", title: "WhatsApp Business for " + name, desc: `Build a WhatsApp broadcast list of ${name} customers. Send weekly offers, flash sales, and new arrivals. Set up quick replies and a product catalogue in WhatsApp Business. 98% of messages are read vs 20% for email.` },
+            { icon: "discount", title: "Loyalty & Referral Program", desc: `Launch a "Refer a Friend, Both Get 10% Off" program for ${name}. Add a digital loyalty stamp — buy 9, get 1 free. Loyal customers spend 67% more and cost 5x less to retain than acquiring new ones.` },
+            { icon: isOnline ? "local_shipping" : "location_on", title: isOnline ? "Same-Day Delivery Promise" : "Local SEO & Justdial", desc: isOnline ? `Offer same-day or next-day delivery for ${name}. Display delivery time prominently on your store. Fast delivery is the #1 factor in repeat online purchases.` : `List ${name} on Justdial, IndiaMART, and Google Maps with correct address, hours, and photos. Optimise for "${name} near me" searches to capture high-intent local buyers.` }
+          ],
+          adChannels: [
+            { name: "Meta Ads (Instagram + Facebook)", budget: Math.round(B*0.35), tip: `Run ${isOnline ? "product catalogue ads targeting your best-selling categories" : "radius ads within 15km showing your top 5 products"}. Use carousel format — it gets 72% more clicks than single image.` },
+            { name: "Google Search & Shopping Ads", budget: Math.round(B*0.25), tip: `Bid on "${name}", "[your product type] in [your city]", and competitor names. Google Shopping ads show product photos and price directly in search results.` },
+            { name: "WhatsApp & SMS Campaigns", budget: Math.round(B*0.15), tip: `Use AiSensy or Interakt (₹999–2,999/month) to send bulk WhatsApp campaigns. Send flash sale alerts every Friday — urgency drives 3x more conversions.` },
+            { name: "Content & Product Photography", budget: Math.round(B*0.15), tip: `Invest ₹${Math.round(B*0.15).toLocaleString("en-IN")} in monthly product shoots. Professional photos improve ad click-through rate by 65% and reduce return rates.` },
+            { name: "Analytics & Retargeting Tools", budget: Math.round(B*0.10), tip: `Use Meta Pixel + Google Analytics to retarget website visitors. People who visited ${name}'s site are 70% more likely to buy when shown a follow-up ad.` }
+          ],
+          profitTips: [
+            `Bundle ${name}'s products — pair a ₹${Math.round(B*0.02)} + ₹${Math.round(B*0.015)} item as a combo for ₹${Math.round(B*0.03)}. Bundles increase average order value by 40–60%.`,
+            `Run flash sales for ${name} every Friday 6–9PM with a countdown timer. Urgency + limited time drives 3x more orders than regular pricing.`,
+            `Add an upsell at checkout: "Add one more item for ₹99 and get free delivery." ${Math.round(B/500)}% of customers accept this — pure profit.`,
+            isOnline ? `List ${name} on Meesho, Flipkart, and Amazon alongside your own store. Marketplace sales add 30–50% extra revenue with zero extra marketing cost.` : `Introduce a pre-order system for popular items at ${name}. Pre-orders improve cash flow and reduce dead stock by 40%.`,
+            `Ask every buyer at ${name} for a Google review via a QR code at the counter or in your delivery box. 10+ reviews doubles local search visibility.`
+          ],
+          milestones: [
+            { period: "Week 1–2", action: `Set up Google My Business, Instagram Business, and WhatsApp Business for ${name}. Upload 20 product photos. Create first Reel showing your bestseller.` },
+            { period: "Week 3–4", action: `Launch first Meta Ads campaign for ${name} with ${fmt(Math.round(B*0.35/4))}/week. Test 2 creatives — one product photo, one Reel. Check which gets more clicks.` },
+            { period: "Month 2", action: `Double budget on the winning ad creative. Start collecting WhatsApp numbers from every customer. Launch loyalty stamp card for ${name}.` },
+            { period: "Month 3", action: `Launch referral program. Start Google Ads. Target 20% revenue increase vs Month 1. Aim for 4.0+ Google rating with 10+ reviews.` }
+          ],
+          kpis: [
+            { label: "Monthly Revenue Target", value: fmt(B * 3.5) + "+", sub: "3.5x ROI on marketing spend" },
+            { label: "New Customers / Month", value: Math.round(B/500) + "–" + Math.round(B/250), sub: "via paid + organic channels" },
+            { label: "Return Customer Rate", value: "30%+", sub: "via WhatsApp & loyalty" }
+          ]
+        },
+        service: {
+          summary: `${name} is a ${modeLabel.toLowerCase()} service/agency business with ${fmt(B)}/month to invest in growth. The focus should be on building credibility through case studies, generating warm leads via LinkedIn and cold email, and converting them with professional proposals and a referral network.`,
+          strategy: [
+            { icon: "work", title: "LinkedIn Profile for " + name, desc: `Optimise the ${name} LinkedIn page and founders' profiles with client results, case studies, and social proof. Post 3x per week — problem → solution → result format. LinkedIn generates 277% more leads than Facebook for service businesses.` },
+            { icon: "star", title: "Case Studies & Testimonials", desc: `Create 3 detailed case studies from ${name}'s best client wins — before/after, specific numbers, client quotes. Pin them on LinkedIn and your website. Case studies close deals 5x faster than any ad because they remove risk for the buyer.` },
+            { icon: "mail", title: "Cold Email Outreach at Scale", desc: `Use Apollo.io (free plan) to find 50 potential clients per day for ${name}. Send personalised cold emails: one line about their business, one line about how ${name} helped a similar company, one clear CTA. A 3% reply rate = ${Math.round(B/5000)} new leads/week.` },
+            { icon: "handshake", title: "Partner Referral Program", desc: `Identify 10 complementary businesses that serve your target clients and offer them 15% commission for every referral that becomes a paying ${name} client. Referrals close at 3x the rate of cold leads.` },
+            { icon: "play_circle", title: "YouTube & Short Video Content", desc: `Post 2 "How we solved [X problem] for a client" videos per month for ${name}. YouTube videos rank on Google for years and bring in qualified leads passively. Even 200-subscriber channels generate client inquiries for service businesses.` }
+          ],
+          adChannels: [
+            { name: "LinkedIn Ads", budget: Math.round(B*0.35), tip: `Target by job title, company size, and industry relevant to ${name}'s ideal clients. Use Lead Gen Forms — LinkedIn users can submit contact info without leaving the platform, giving you 3x more leads.` },
+            { name: "Google Search Ads", budget: Math.round(B*0.25), tip: `Run ads for "${name}'s service type + your city" and "best [service] agency India". These are high-intent searches — people are actively looking to hire, not just browsing.` },
+            { name: "Content & SEO", budget: Math.round(B*0.20), tip: `Write 2 blog posts/month targeting problems your clients search for before hiring. A good SEO article brings in leads for 2–3 years — best long-term ROI for ${name}.` },
+            { name: "Email Newsletter", budget: Math.round(B*0.10), tip: `Send monthly newsletter to ${name}'s past clients and prospects. Share one insight, one case study, one offer. Stays top-of-mind for when they're ready to buy — 40% of service deals come from past contacts.` },
+            { name: "Proposal & CRM Tools", budget: Math.round(B*0.10), tip: `Use HubSpot Free CRM + Canva for proposals. Professional-looking proposals for ${name} close 35% more deals. Track every lead and follow up at the right time.` }
+          ],
+          profitTips: [
+            `Package ${name}'s services into 3 tiers — Basic (₹${fmt(B*0.5)}), Standard (₹${fmt(B*1)}), Premium (₹${fmt(B*2)}). 60% of clients choose Standard. Price it for maximum margin.`,
+            `Offer every ${name} project client a monthly retainer option at 70% of the project cost/month. Even 2 retainer clients = stable ₹${fmt(B*1.4)}/month baseline.`,
+            `Raise ${name}'s prices by 20% for new clients every 6 months. Existing clients stay at old rates. New rate becomes the baseline — revenue grows without more clients.`,
+            `Create a fixed-price "starter package" for ${name} — one specific deliverable at one fixed price. Easy to sell, easy to deliver, no scope creep.`,
+            `Always ask for 50% payment upfront at ${name}. This filters out low-quality clients and ensures you're never working for free. Non-negotiable for service businesses.`
+          ],
+          milestones: [
+            { period: "Week 1–2", action: `Optimise ${name} LinkedIn page. Write 2 case studies from past work. Set up free HubSpot CRM. Create 3-tier pricing page.` },
+            { period: "Week 3–4", action: `Start cold email outreach — 20 emails/day. Launch first LinkedIn ad for ${name} with ${fmt(B*0.35/4)} budget. Reach out to 5 potential referral partners.` },
+            { period: "Month 2", action: `Follow up all Month 1 leads. Ask 3 happy clients for a referral. Write first SEO blog post for ${name}. Aim for 2 discovery calls/week.` },
+            { period: "Month 3", action: `Convert 1–2 project clients to retainers. Launch referral partner program. Target ${fmt(B*4)} in new business from ${name} marketing efforts.` }
+          ],
+          kpis: [
+            { label: "New Leads / Month", value: Math.round(B/2000) + "–" + Math.round(B/1000), sub: "LinkedIn + email + referrals" },
+            { label: "Lead-to-Client Rate", value: "15–25%", sub: "with strong case studies" },
+            { label: "Monthly Revenue Target", value: fmt(B*4) + "+", sub: "4x ROI on marketing" }
+          ]
+        },
+        tech: {
+          summary: `${name} is a tech startup operating ${modeLabel.toLowerCase()} with ${fmt(B)}/month to invest in growth. The strategy focuses on product-led acquisition, community building, and content marketing to drive compounding organic growth while running targeted paid campaigns for immediate user acquisition.`,
+          strategy: [
+            { icon: "rocket_launch", title: "Product Hunt Launch for " + name, desc: `Plan a Product Hunt launch for ${name} on a Tuesday or Wednesday. Build 300+ "hunters" who upvote on launch day via Twitter DMs and IndieHackers. A #1 Product of the Day finish drives 2,000–8,000 signups and press coverage — all free.` },
+            { icon: "code", title: "Developer & Startup Communities", desc: `Share ${name}'s story on Hacker News (Show HN post), IndieHackers, Reddit (r/startups, r/SaaS), and relevant Discord servers. Don't pitch — contribute genuinely. Community members become your most loyal early users and spread the word.` },
+            { icon: "article", title: "SEO Content Engine", desc: `Write 3 blog posts/month for ${name} targeting problems your product solves. Focus on "[competitor name] alternative", "[problem] tool", "[use case] software" keywords. SEO compounds — Month 6 traffic is 10x Month 1 traffic from the same posts.` },
+            { icon: "videocam", title: "Demo Video Series", desc: `Create 60-second "Use Case" videos for ${name} — one video per specific problem your product solves. Post on YouTube, Twitter/X, and LinkedIn. Video demos convert visitors to signups at 2.5x the rate of text landing pages.` },
+            { icon: "group_add", title: "Freemium Onboarding Funnel", desc: `Design ${name}'s free tier to deliver real value within 5 minutes of signup. The faster users hit the "aha moment", the higher your free-to-paid conversion. Remove every unnecessary onboarding step — each step lost costs you 30% of users.` }
+          ],
+          adChannels: [
+            { name: "Google Search Ads", budget: Math.round(B*0.30), tip: `Bid on competitor names and problem-based keywords for ${name}. "Best [competitor] alternative" keywords convert at 8–15% — far above industry average — because users are already decided to switch.` },
+            { name: "Twitter/X & LinkedIn Ads", budget: Math.round(B*0.25), tip: `Target by job title, company size, and tech stack relevant to ${name}'s users. Twitter for dev tools and indie hackers; LinkedIn for B2B SaaS targeting managers and executives.` },
+            { name: "SEO Content & Blog", budget: Math.round(B*0.20), tip: `Invest in long-form comparison content for ${name}: "[Your product] vs [Competitor]", "Best tools for [use case]". These posts rank on Google and convert at 8–12% — the highest ROI content format for SaaS.` },
+            { name: "Niche Newsletter Sponsorships", budget: Math.round(B*0.15), tip: `Sponsor 1–2 newsletters read by ${name}'s target users (5,000–30,000 subscribers). Newsletter readers are high-intent and trust the host's recommendations — 3–5x better conversion than social ads.` },
+            { name: "Product Analytics", budget: Math.round(B*0.10), tip: `Use Mixpanel or PostHog to track ${name}'s activation funnel. Find where users drop off and fix it. Improving activation by 10% can double MRR without spending a single extra rupee on marketing.` }
+          ],
+          profitTips: [
+            `Offer annual pricing for ${name} at a 20% discount. This converts 35–45% of monthly users to annual — giving you 10 months of cash upfront and reducing churn by 70%.`,
+            `Add a Teams/Business plan for ${name} at 3–5x the individual price. Even if only 10% of users upgrade, it doubles revenue from that segment.`,
+            `Build integrations with tools your ${name} users already use (Slack, Notion, Google Workspace). Each integration is a new acquisition channel and reduces churn significantly.`,
+            `Launch an affiliate program for ${name} — offer 25–30% recurring commission. SaaS affiliates drive 15–30% of revenue for top products with zero upfront cost.`,
+            `Send a win-back campaign to ${name} churned users after 30 days: "We've improved X, Y, Z — here's 40% off to come back." Recovers 8–15% of churned revenue at near-zero cost.`
+          ],
+          milestones: [
+            { period: "Week 1–2", action: `Set up Mixpanel analytics for ${name}. Create 3 demo videos. Post "Show HN" on Hacker News. Join 5 relevant Discord/Slack communities and introduce ${name} authentically.` },
+            { period: "Week 3–4", action: `Launch Google Ads for ${name} at ${fmt(Math.round(B*0.30/4))}/week. Start building Product Hunt launch list — DM 100 people asking them to upvote on launch day.` },
+            { period: "Month 2", action: `Analyse onboarding funnel — fix the biggest drop-off point for ${name}. Publish first 2 SEO comparison articles. Reach out to 3 newsletter owners for sponsorship.` },
+            { period: "Month 3", action: `Launch ${name} on Product Hunt. Push for 500+ upvotes. Launch affiliate program. Introduce annual pricing. Target 300+ signups and ${Math.round(B/1000)} paying users.` }
+          ],
+          kpis: [
+            { label: "Monthly Signups Target", value: "300–800", sub: "product + content + paid" },
+            { label: "Free-to-Paid Rate", value: "4–8%", sub: "SaaS benchmark for " + name },
+            { label: "MRR Growth/Month", value: "20–35%", sub: "compounding acquisition" }
+          ]
+        }
+      };
+
+      const p = plans[data.type] || plans["retail"];
+      renderPlanHTML(planEl, data, p, fmt, typeLabel, modeLabel, false);
+    };
+
+    function renderPlanHTML(planEl, data, p, fmt, typeLabel, modeLabel, isAI) {
+      planEl.innerHTML = '<div class="space-y-5">'
+        + '<div class="flex items-center gap-3 pb-3 border-b border-white/10"><span class="material-symbols-outlined text-[#13ec13] text-2xl">auto_awesome</span><div><h3 class="text-white font-black text-lg">Growth Plan for ' + data.name + '</h3><p class="text-gray-400 text-xs">' + typeLabel + ' · ' + modeLabel + ' · ' + fmt(data.budget) + '/month' + (isAI ? ' · <span class="text-[#13ec13]">✦ Live AI</span>' : ' · Smart Analysis') + '</p></div></div>'
+        + '<div class="bg-[#13ec13]/5 border border-[#13ec13]/20 rounded-xl p-4"><p class="text-gray-200 text-sm leading-relaxed">' + p.summary + '</p></div>'
+        + '<div><p class="text-[#13ec13] text-xs font-black uppercase tracking-wider mb-3">🎯 Growth Strategy</p><div class="space-y-2">'
+        + p.strategy.map(s => '<div class="bg-white/5 border border-white/10 rounded-xl p-3 flex gap-3"><div class="w-8 h-8 bg-[#13ec13]/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"><span class="material-symbols-outlined text-[#13ec13] text-base">' + s.icon + '</span></div><div><p class="text-white font-bold text-sm">' + s.title + '</p><p class="text-gray-400 text-xs mt-0.5 leading-relaxed">' + s.desc + '</p></div></div>').join("") + '</div></div>'
+        + '<div><p class="text-[#13ec13] text-xs font-black uppercase tracking-wider mb-3">💰 Budget & Ad Channels</p><div class="space-y-2">'
+        + p.adChannels.map(c => '<div class="bg-white/5 border border-white/10 rounded-xl p-3"><div class="flex items-center justify-between mb-1"><p class="text-white font-bold text-sm">' + c.name + '</p><p class="text-[#13ec13] font-black text-sm">' + fmt(c.budget) + '<span class="text-gray-500 text-xs font-normal">/mo</span></p></div><p class="text-gray-400 text-xs leading-relaxed">' + c.tip + '</p></div>').join("") + '</div></div>'
+        + '<div><p class="text-[#13ec13] text-xs font-black uppercase tracking-wider mb-3">📈 Profit Tips</p><div class="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">'
+        + p.profitTips.map((t,i) => '<div class="flex gap-2 text-sm"><span class="text-[#13ec13] font-black flex-shrink-0">' + (i+1) + '.</span><p class="text-gray-300 leading-relaxed">' + t + '</p></div>').join("") + '</div></div>'
+        + '<div><p class="text-[#13ec13] text-xs font-black uppercase tracking-wider mb-3">📅 90-Day Action Plan</p><div class="space-y-2">'
+        + p.milestones.map(m => '<div class="flex gap-3 bg-white/5 border border-white/10 rounded-xl p-3"><div class="w-16 flex-shrink-0"><p class="text-[#13ec13] text-xs font-black">' + m.period + '</p></div><p class="text-gray-300 text-xs leading-relaxed">' + m.action + '</p></div>').join("") + '</div></div>'
+        + '<div><p class="text-[#13ec13] text-xs font-black uppercase tracking-wider mb-3">🎯 Success Metrics</p><div class="grid grid-cols-3 gap-3">'
+        + p.kpis.map(k => '<div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center"><p class="text-[#13ec13] font-black text-base">' + k.value + '</p><p class="text-white text-xs font-semibold mt-1 leading-tight">' + k.label + '</p><p class="text-gray-500 text-xs mt-0.5">' + k.sub + '</p></div>').join("") + '</div></div>'
+        + '</div>';
+    }
+    window.renderPlanHTML = renderPlanHTML;
+      document.getElementById("aiSection").classList.add("hidden");
+      document.getElementById("profileSection").classList.remove("hidden");
+      document.getElementById("step2dot").className = "w-8 h-8 rounded-full bg-white/10 text-gray-400 font-black text-sm flex items-center justify-center";
+      const saveBtn = document.querySelector("button[onclick='saveProfile(this)']");
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<span class="material-symbols-outlined text-base">auto_awesome</span> Save & Generate AI Plan';
+    
+  </script>
+
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="font-display bg-[#0d1b0d] text-white min-h-screen">
+
+  <!-- Nav -->
+  <nav class="sticky top-0 z-50 border-b border-white/10 bg-[#0d1b0d]/95 backdrop-blur-sm">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="dashboard.html" class="flex items-center gap-2">
+        <svg class="w-7 h-7 text-[#13ec13]" fill="currentColor" viewBox="0 0 48 48">
+          <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z"/>
+        </svg>
+        <span class="font-black text-lg">StratiQ</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <span class="text-gray-400 text-sm hidden sm:block" id="userName"></span>
+        <a href="dashboard.html" class="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">arrow_back</span> Dashboard
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-3xl mx-auto px-4 py-10">
+
+    <!-- Step indicator -->
+    <div class="flex items-center gap-3 mb-8">
+      <div id="step1dot" class="w-8 h-8 rounded-full bg-[#13ec13] text-[#0d1b0d] font-black text-sm flex items-center justify-center">1</div>
+      <p class="text-gray-400 text-xs">Profile</p>
+      <div class="flex-1 h-0.5 bg-white/10" id="stepLine"></div>
+      <p class="text-gray-400 text-xs">AI Plan</p>
+      <div id="step2dot" class="w-8 h-8 rounded-full bg-white/10 text-gray-400 font-black text-sm flex items-center justify-center">2</div>
+    </div>
+
+    <!-- ===== SECTION 1: Profile Form ===== -->
+    <div id="profileSection">
+      <div class="mb-6">
+        <h1 class="text-2xl font-black">Business <span class="text-[#13ec13]">Profile</span></h1>
+        <p class="text-gray-400 text-sm mt-1">Fill in your details and we'll generate a personalised AI growth plan instantly.</p>
+      </div>
+
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
+
+        <!-- Error -->
+        <div id="formError" class="hidden bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3"></div>
+
+        <!-- Business Name -->
+        <div>
+          <label class="text-gray-300 text-sm font-semibold block mb-1.5">Business Name</label>
+          <input id="businessName" type="text" placeholder="e.g. Priya's Boutique, TechNova"
+            class="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#13ec13] focus:ring-1 focus:ring-[#13ec13] transition"/>
+        </div>
+
+        <!-- Business Type -->
+        <div>
+          <label class="text-gray-300 text-sm font-semibold block mb-2">Business Category</label>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="type-card cursor-pointer border-2 border-white/10 bg-white/5 rounded-xl p-3 text-center hover:border-[#13ec13]/50 transition" onclick="selectType(this, 'retail')">
+              <span class="material-symbols-outlined text-2xl block mb-1 text-gray-400">shopping_bag</span>
+              <span class="text-white text-xs font-semibold">Retail / Shop</span>
+              <input type="radio" name="btype" value="retail" class="hidden"/>
+            </div>
+            <div class="type-card cursor-pointer border-2 border-white/10 bg-white/5 rounded-xl p-3 text-center hover:border-[#13ec13]/50 transition" onclick="selectType(this, 'service')">
+              <span class="material-symbols-outlined text-2xl block mb-1 text-gray-400">handshake</span>
+              <span class="text-white text-xs font-semibold">Service / Agency</span>
+              <input type="radio" name="btype" value="service" class="hidden"/>
+            </div>
+            <div class="type-card cursor-pointer border-2 border-white/10 bg-white/5 rounded-xl p-3 text-center hover:border-[#13ec13]/50 transition" onclick="selectType(this, 'tech')">
+              <span class="material-symbols-outlined text-2xl block mb-1 text-gray-400">computer</span>
+              <span class="text-white text-xs font-semibold">Tech Startup</span>
+              <input type="radio" name="btype" value="tech" class="hidden"/>
+            </div>
+          </div>
+          <select id="businessType" class="hidden">
+            <option value="">Select</option>
+            <option value="retail">Retail</option>
+            <option value="service">Service</option>
+            <option value="tech">Tech</option>
+          </select>
+        </div>
+
+        <!-- Budget -->
+        <div>
+          <label class="text-gray-300 text-sm font-semibold block mb-1.5">Monthly Marketing Budget</label>
+          <div class="relative">
+            <span class="absolute left-4 top-3 text-gray-400 font-bold text-sm">₹</span>
+            <input id="budget" type="number" placeholder="50000" min="1000"
+              class="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:border-[#13ec13] focus:ring-1 focus:ring-[#13ec13] transition"/>
+          </div>
+          <div class="flex gap-2 mt-2 flex-wrap">
+            <button type="button" onclick="setBudget(10000)" class="text-xs bg-white/5 hover:bg-[#13ec13]/10 hover:text-[#13ec13] border border-white/10 hover:border-[#13ec13]/30 text-gray-400 px-3 py-1 rounded-full transition">₹10K</button>
+            <button type="button" onclick="setBudget(25000)" class="text-xs bg-white/5 hover:bg-[#13ec13]/10 hover:text-[#13ec13] border border-white/10 hover:border-[#13ec13]/30 text-gray-400 px-3 py-1 rounded-full transition">₹25K</button>
+            <button type="button" onclick="setBudget(50000)" class="text-xs bg-white/5 hover:bg-[#13ec13]/10 hover:text-[#13ec13] border border-white/10 hover:border-[#13ec13]/30 text-gray-400 px-3 py-1 rounded-full transition">₹50K</button>
+            <button type="button" onclick="setBudget(100000)" class="text-xs bg-white/5 hover:bg-[#13ec13]/10 hover:text-[#13ec13] border border-white/10 hover:border-[#13ec13]/30 text-gray-400 px-3 py-1 rounded-full transition">₹1L</button>
+          </div>
+        </div>
+
+        <!-- Mode -->
+        <div>
+          <label class="text-gray-300 text-sm font-semibold block mb-2">How do you operate?</label>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="mode-card cursor-pointer border-2 border-[#13ec13] bg-[#13ec13]/10 rounded-xl p-4 flex items-center gap-3 transition" onclick="selectMode(this)">
+              <input type="radio" name="business_mode" value="online" checked class="hidden"/>
+              <span class="material-symbols-outlined text-[#13ec13] text-2xl">language</span>
+              <div>
+                <p class="text-white font-semibold text-sm">Online Only</p>
+                <p class="text-gray-400 text-xs">E-commerce / Digital</p>
+              </div>
+            </div>
+            <div class="mode-card cursor-pointer border-2 border-white/10 bg-white/5 rounded-xl p-4 flex items-center gap-3 transition" onclick="selectMode(this)">
+              <input type="radio" name="business_mode" value="offline" class="hidden"/>
+              <span class="material-symbols-outlined text-gray-400 text-2xl">store</span>
+              <div>
+                <p class="text-white font-semibold text-sm">Physical Store</p>
+                <p class="text-gray-400 text-xs">Walk-in / Local</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extra Details -->
+        <div>
+          <label class="text-gray-300 text-sm font-semibold block mb-1.5">
+            Tell the AI more about your business
+            <span class="text-gray-500 font-normal ml-1">(optional but improves the plan)</span>
+          </label>
+          <textarea id="extraDetails" rows="3"
+            placeholder="e.g. I sell handmade jewellery targeting women aged 20–35 in Chennai. My bestsellers are earrings under ₹500. I currently get most customers from Instagram but want to grow on WhatsApp too."
+            class="w-full bg-white/5 border border-white/10 text-white placeholder-gray-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#13ec13] focus:ring-1 focus:ring-[#13ec13] transition resize-none leading-relaxed"></textarea>
+          <p class="text-gray-600 text-xs mt-1">The more specific you are, the more tailored your AI plan will be.</p>
+        </div>
+
+        <!-- Submit -->
+        <button onclick="saveProfile(this)"
+          class="w-full bg-[#13ec13] hover:bg-[#0fd60f] text-[#0d1b0d] font-black py-4 rounded-xl text-sm transition flex items-center justify-center gap-2 disabled:opacity-50">
+          <span class="material-symbols-outlined text-base">auto_awesome</span>
+          Save & Generate AI Plan
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== SECTION 2: AI Plan ===== -->
+    <div id="aiSection" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-black">AI Growth <span class="text-[#13ec13]">Plan</span></h1>
+          <p class="text-gray-400 text-sm mt-1">Your personalised strategy is ready.</p>
+        </div>
+        <button onclick="editProfile()" class="text-xs text-gray-400 hover:text-white border border-white/10 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">edit</span> Edit
+        </button>
+      </div>
+
+      <div id="aiPlan" class="bg-white/5 border border-white/10 rounded-2xl p-6 min-h-[200px]"></div>
+
+      <div class="mt-4 flex gap-3">
+        <a href="fund.html"
+          class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base">rocket_launch</span> Submit a Pitch
+        </a>
+        <a href="dashboard.html"
+          class="flex-1 bg-[#13ec13] hover:bg-[#0fd60f] text-[#0d1b0d] font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base">home</span> Dashboard
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function selectType(el, val) {
+      document.querySelectorAll(".type-card").forEach(c => {
+        c.className = "type-card cursor-pointer border-2 border-white/10 bg-white/5 rounded-xl p-3 text-center hover:border-[#13ec13]/50 transition";
+        c.querySelector(".material-symbols-outlined").className = "material-symbols-outlined text-2xl block mb-1 text-gray-400";
+      });
+      el.className = "type-card cursor-pointer border-2 border-[#13ec13] bg-[#13ec13]/10 rounded-xl p-3 text-center transition";
+      el.querySelector(".material-symbols-outlined").className = "material-symbols-outlined text-2xl block mb-1 text-[#13ec13]";
+      document.getElementById("businessType").value = val;
+    }
+
+    function selectMode(el) {
+      document.querySelectorAll(".mode-card").forEach(c => {
+        c.className = "mode-card cursor-pointer border-2 border-white/10 bg-white/5 rounded-xl p-4 flex items-center gap-3 transition";
+        c.querySelector(".material-symbols-outlined").className = "material-symbols-outlined text-gray-400 text-2xl";
+        c.querySelector("input").checked = false;
+      });
+      el.className = "mode-card cursor-pointer border-2 border-[#13ec13] bg-[#13ec13]/10 rounded-xl p-4 flex items-center gap-3 transition";
+      el.querySelector(".material-symbols-outlined").className = "material-symbols-outlined text-[#13ec13] text-2xl";
+      el.querySelector("input").checked = true;
+    }
+
+    function setBudget(val) {
+      document.getElementById("budget").value = val;
+    }
+  </script>
+</body>
+</html>
