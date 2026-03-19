@@ -3,21 +3,25 @@
 
 > Connect vendors with investors. Generate AI marketing plans. Grow smarter.
 
-![StratiQ Banner](https://img.shields.io/badge/StratiQ-AI%20Growth%20Platform-13ec13?style=for-the-badge&labelColor=0d1b0d)
+![StratiQ](https://img.shields.io/badge/StratiQ-AI%20Growth%20Platform-13ec13?style=for-the-badge&labelColor=0d1b0d)
 ![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-orange?style=for-the-badge&logo=firebase)
 ![Claude AI](https://img.shields.io/badge/Claude%20AI-Anthropic-blueviolet?style=for-the-badge)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-Styling-38bdf8?style=for-the-badge&logo=tailwindcss)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 ---
 
-## 🚀 What is StratiQ?
+## 📌 What is StratiQ?
 
-StratiQ is a web platform that helps small business owners and startups in India:
+StratiQ is a web platform built for small business owners and startups in India. It bridges the gap between vendors who need funding and growth strategy, and investors looking for promising businesses to fund.
 
-- 📊 **Generate AI-powered marketing plans** tailored to their business name, budget, type, and goals
-- 💰 **Submit fundraising pitches** to attract real investors
-- 🤝 **Connect vendors and investors** through a live pitch review system
-- 📈 **Get actionable growth strategies** with budget breakdowns, ad channel recommendations, and 90-day action plans
+### The Problem
+Small businesses in India struggle with two things:
+- They don't know how to market and grow effectively
+- They can't find the right investors to fund their ideas
+
+### The Solution
+StratiQ gives vendors an AI-powered marketing plan tailored to their exact business, and connects them with investors through a live pitch system — all in one platform.
 
 ---
 
@@ -25,50 +29,64 @@ StratiQ is a web platform that helps small business owners and startups in India
 
 | Feature | Description |
 |---------|-------------|
-| 🔐 **Auth System** | Firebase Email/Password login & registration with role-based access |
-| 👤 **Two Roles** | Vendor (submit pitches, get AI plans) & Investor (review and approve/reject pitches) |
-| 🤖 **AI Growth Plan** | Claude AI generates a personalised marketing plan based on your business details |
-| 💸 **Rise Fund** | Vendors pitch business ideas with investment needs and expected profit |
-| 📋 **Investor Dashboard** | Investors review all pitches and approve or reject them in real time |
-| 🌐 **Multilingual** | English, Tamil, and Hindi support on the main dashboard |
+| 🔐 **Role-Based Auth** | Separate login flows for Vendors and Investors via Firebase |
+| 🤖 **AI Growth Plan** | Claude AI generates a personalised marketing plan based on business name, type, budget & details |
+| 💸 **Rise Fund** | Vendors pitch business ideas with investment needs and expected profit % |
+| 📋 **Investor Dashboard** | Investors review, approve or reject pitches in real time |
+| 📊 **Budget Breakdown** | AI allocates your exact budget across ad channels (Meta, Google, WhatsApp etc.) |
+| 📅 **90-Day Action Plan** | Step-by-step weekly milestones specific to your business |
+| 🌐 **Multilingual** | English, Tamil, and Hindi support |
+| 📱 **Responsive** | Works on mobile and desktop |
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend** — HTML, Tailwind CSS, Vanilla JavaScript
-- **Backend** — Firebase Authentication + Cloud Firestore
-- **AI** — Anthropic Claude API (`claude-sonnet-4-20250514`)
-- **Hosting** — Firebase Hosting (recommended)
+| Layer | Technology |
+|-------|-----------|
+| Frontend | HTML5, Tailwind CSS, Vanilla JavaScript |
+| Authentication | Firebase Auth (Email/Password) |
+| Database | Cloud Firestore |
+| AI | Anthropic Claude API (`claude-sonnet-4-20250514`) |
+| Hosting | Firebase Hosting |
 
 ---
 
-## ⚙️ Setup & Installation
+## 🚀 Getting Started
+
+### Prerequisites
+- A Firebase project ([create one free](https://console.firebase.google.com))
+- Node.js installed (for local server) OR VS Code with Live Server extension
+- An Anthropic API key ([get one free](https://console.anthropic.com)) — optional, Smart Analysis works without it
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/StratiQ.git
+git clone https://github.com/NeethutBiju/StratiQ.git
 cd StratiQ
 ```
 
-### 2. Run locally
-You **must** use a local server — Firebase does not work with `file://` protocol.
+### 2. Add your Firebase config
+Open each of these files and replace the placeholders with your real Firebase config:
+- `firebase.js`
+- `login.html`
+- `register.html`
+- `dashboard.html`
+- `fund.html`
+- `investordashboard.html`
+- `buisness-form.html`
+- `script.js`
 
-**Option A — VS Code Live Server (easiest)**
-- Install the [Live Server extension](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
-- Right-click `dashboard.html` → **Open with Live Server**
-
-**Option B — Node.js**
-```bash
-node serve.js
+Replace:
+```javascript
+apiKey: "YOUR_FIREBASE_API_KEY",
+messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+appId: "YOUR_APP_ID"
 ```
-Then open `http://localhost:3000`
 
-### 3. Firebase Setup
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select project **startiq-ae6af** (or create your own)
-3. Enable **Authentication → Email/Password**
-4. Go to **Firestore Database → Rules** and paste:
+Find your config at: **Firebase Console → Project Settings → Your Apps → SDK setup**
+
+### 3. Set up Firestore Rules
+Go to **Firebase Console → Firestore Database → Rules** and paste:
 
 ```
 rules_version = '2';
@@ -89,23 +107,35 @@ service cloud.firestore {
 }
 ```
 
-5. Click **Publish**
+Click **Publish**.
 
-### 4. Add Your Anthropic API Key (Optional)
-The AI plan works without a key using Smart Analysis mode. For live Claude AI:
+### 4. Enable Firebase Authentication
+Go to **Firebase Console → Authentication → Sign-in method → Email/Password → Enable**
 
-1. Get a free key at [console.anthropic.com](https://console.anthropic.com)
-2. Open `buisness-form.html`
-3. Find this line:
+### 5. Add Anthropic API Key (Optional)
+Open `buisness-form.html` and find:
 ```javascript
-const API_KEY = ""; // ← paste your key here
+const API_KEY = "";
 ```
-4. Add your key:
+Replace with your key:
 ```javascript
 const API_KEY = "sk-ant-your-key-here";
 ```
+> ⚠️ Never commit your API key to GitHub
 
-> ⚠️ **Never commit your API key to GitHub.**
+### 6. Run locally
+**Option A — VS Code Live Server (recommended)**
+- Install [Live Server extension](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)
+- Right-click `dashboard.html` → **Open with Live Server**
+- Opens at `http://127.0.0.1:5500`
+
+**Option B — Node.js**
+```bash
+node serve.js
+```
+Opens at `http://localhost:3000`
+
+> ⚠️ Must use HTTP — Firebase does not work with `file://` protocol
 
 ---
 
@@ -115,32 +145,36 @@ const API_KEY = "sk-ant-your-key-here";
 StratiQ/
 ├── dashboard.html          # Main landing page (vendor home)
 ├── login.html              # Login page
-├── register.html           # Registration with role selection
-├── buisness-form.html      # Business profile + AI growth plan
-├── fund.html               # Vendor pitch submission
-├── investordashboard.html  # Investor pitch review
+├── register.html           # Registration with Vendor / Investor role picker
+├── buisness-form.html      # Business profile form + AI growth plan
+├── fund.html               # Vendor pitch submission + My Pitches
+├── investordashboard.html  # Investor pitch review dashboard
 ├── contact.html            # Contact page
-├── firebase.js             # Firebase config
+├── firebase.js             # Firebase config (add your keys here)
 ├── auth.js                 # Login & register logic
-├── script.js               # Pitch submission & loading
+├── script.js               # Pitch submission & Firestore loading
 ├── serve.js                # Local development server
+├── config.example.js       # Config template — shows what keys to add
 └── README.md
 ```
 
 ---
 
-## 🔐 How It Works
+## 🔄 How It Works
 
 ```
-Register as Vendor          Register as Investor
-       ↓                            ↓
-  dashboard.html          investordashboard.html
-       ↓                            ↓
-Get AI Growth Plan          View all pitches
-       ↓                            ↓
-Submit Pitch (fund.html)    Approve / Reject
-       ↓                            ↓
-  Saved to Firestore    Status updated in real time
+┌─────────────────────────────────────────────────────┐
+│                      VENDOR                          │
+│  Register → Dashboard → Get AI Growth Plan           │
+│                       → Submit Pitch (Rise Fund)     │
+│                       → View pitch status            │
+└─────────────────────────────────────────────────────┘
+                            ↕ Firestore
+┌─────────────────────────────────────────────────────┐
+│                     INVESTOR                         │
+│  Register → Investor Dashboard → View all pitches    │
+│                               → Approve / Reject     │
+└─────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -148,39 +182,55 @@ Submit Pitch (fund.html)    Approve / Reject
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch — `git checkout -b feat/your-feature`
-3. Commit — `git commit -m "feat: add your feature"`
-4. Push — `git push origin feat/your-feature`
+2. Create your feature branch
+```bash
+git checkout -b feat/your-feature-name
+```
+3. Commit your changes
+```bash
+git commit -m "feat: add your feature"
+```
+4. Push to the branch
+```bash
+git push origin feat/your-feature-name
+```
 5. Open a Pull Request
 
-### Commit Message Format
-| Prefix | Use for |
-|--------|---------|
+### Commit Message Convention
+| Prefix | When to use |
+|--------|-------------|
 | `feat:` | New feature |
 | `fix:` | Bug fix |
-| `style:` | UI/styling changes |
-| `refactor:` | Code cleanup |
-| `docs:` | README or documentation |
-| `chore:` | Config, dependencies |
+| `style:` | UI / styling changes |
+| `refactor:` | Code restructure, no feature change |
+| `docs:` | Documentation updates |
+| `chore:` | Config, dependencies, cleanup |
 
 ---
 
-## 🐛 Known Issues
+## ⚠️ Security Notes
 
-- AI plan requires an Anthropic API key for live generation (Smart Analysis fallback works without it)
-- Must be served over HTTP — does not work with `file://` protocol
-- Firestore rules must be published before pitches can be saved or loaded
-
----
-
-## 📄 License
-
-MIT License — feel free to use, modify, and distribute.
+- Firebase API keys in this repo are **intentionally removed** — add your own
+- Anthropic API key is **never stored in this repo** — add locally only
+- Firebase API keys are safe to be public by design — security is enforced by Firestore Rules
+- Never commit any `.env` files or API keys
 
 ---
 
-## 👩‍💻 Built by
+## 🐛 Known Issues & Roadmap
 
-**Neeethu T Biju** — [GitHub](https://github.com/NeethutBiju)
+See the [Issues](../../issues) tab for current bugs and planned features.
 
-> *StratiQ — Your partner in financial growth and intelligence.*
+---
+
+## 👩‍💻 Authors
+
+**Neethu T Biju**
+GitHub: [NeethutBiju](https://github.com/NeethutBiju)
+**Iniya NJ**
+GitHub: [iniyanj2025cys-ctrl](https://github.com/iniyanj2025cys-ctrl)
+**Kavya Shree J**
+GitHub: [kavyashreej2025cys-cyber](https://github.com/kavyashreej2025cys-cyber)
+---
+
+> *StratiQ — Democratising financial intelligence for every business in India.*

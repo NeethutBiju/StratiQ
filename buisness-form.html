@@ -24,12 +24,12 @@
     import { getFirestore, getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const app  = initializeApp({
-      apiKey: "AIzaSyARQqXg3L8luRb01k-yn2chyiFWEbn_9iM",
+      apiKey: "YOUR_FIREBASE_API_KEY",
       authDomain: "startiq-ae6af.firebaseapp.com",
       projectId: "startiq-ae6af",
       storageBucket: "startiq-ae6af.appspot.com",
-      messagingSenderId: "1081848840736",
-      appId: "1:1081848840736:web:66b7b4c093cf41711a3245"
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "1:YOUR_MESSAGING_SENDER_ID:web:66b7b4c093cf41711a3245"
     });
     const auth = getAuth(app);
     const db   = getFirestore(app);
@@ -372,7 +372,7 @@ The adChannels budgets must add up to exactly ${data.budget}. Use Indian marketi
       const saveBtn = document.querySelector("button[onclick='saveProfile(this)']");
       saveBtn.disabled = false;
       saveBtn.innerHTML = '<span class="material-symbols-outlined text-base">auto_awesome</span> Save & Generate AI Plan';
-    
+    };
   </script>
 
   <style>

@@ -1,6 +1,36 @@
-node_modules/
+# ── Environment & Secrets ──────────────────────────
 .env
 .env.local
-*.log
+.env.development
+.env.production
+config.local.js
+secrets.js
+
+# ── Firebase ────────────────────────────────────────
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# ── Node ────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── OS Files ────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# ── Editor ──────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ── Logs ────────────────────────────────────────────
+*.log
+logs/

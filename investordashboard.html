@@ -7,54 +7,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: { primary: "#13ec13" },
-          fontFamily: { display: ["Manrope", "sans-serif"] }
-        }
-      }
-    }
-  </script>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const app  = initializeApp({
-      apiKey: "AIzaSyARQqXg3L8luRb01k-yn2chyiFWEbn_9iM",
-      authDomain: "startiq-ae6af.firebaseapp.com",
-      projectId: "startiq-ae6af",
-      storageBucket: "startiq-ae6af.appspot.com",
-      messagingSenderId: "1081848840736",
-      appId: "1:1081848840736:web:66b7b4c093cf41711a3245"
-    });
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
-
-    // Expose logout globally so onclick="logout()" works
-    window.logout = async function() {
-      await signOut(auth);
-      location.href = "login.html";
-    };
-
-    onAuthStateChanged(auth, async user => {
-      if (!user) { location.href = "login.html"; return; }
-
-      document.getElementById("userName").textContent = user.displayName || user.email;
-
-      try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists() && snap.data().role === "vendor") {
-          location.href = "dashboard.html";
-        }
-      } catch(e) { /* Firestore rules not set yet — skip */ }
-    });
-  </script>
+  <style>
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .spinning { animation: spin 0.8s linear infinite; display:inline-block; }
+  </style>
 </head>
-<body class="font-display bg-[#0d1b0d] text-white min-h-screen">
+<body class="font-sans bg-[#0d1b0d] text-white min-h-screen" style="visibility:hidden">
 
   <!-- Nav -->
   <nav class="sticky top-0 z-50 border-b border-white/10 bg-[#0d1b0d]/95 backdrop-blur-sm">
@@ -87,33 +45,27 @@
     <!-- Filter tabs -->
     <div class="flex gap-2 mb-6 flex-wrap">
       <button onclick="filterPitches('all')" id="filter-all"
-        class="filter-btn bg-[#13ec13] text-[#0d1b0d] font-bold px-4 py-1.5 rounded-full text-sm transition">
-        All Pitches
-      </button>
+        class="filter-btn bg-[#13ec13] text-[#0d1b0d] font-bold px-4 py-1.5 rounded-full text-sm transition">All</button>
       <button onclick="filterPitches('Pending')" id="filter-Pending"
-        class="filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition">
-        Pending
-      </button>
+        class="filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition">Pending</button>
       <button onclick="filterPitches('Approved')" id="filter-Approved"
-        class="filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition">
-        Approved
-      </button>
+        class="filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition">Approved</button>
       <button onclick="filterPitches('Rejected')" id="filter-Rejected"
-        class="filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition">
-        Rejected
-      </button>
+        class="filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition">Rejected</button>
     </div>
 
-    <!-- Pitches List -->
+    <!-- Pitches -->
     <div id="investorPitches">
-      <p class="text-gray-400 text-sm text-center py-8">Loading pitches...</p>
+      <div class="flex items-center justify-center gap-2 py-12 text-gray-500 text-sm">
+        <span class="material-symbols-outlined spinning text-lg">refresh</span>
+        Loading pitches...
+      </div>
     </div>
+
   </div>
 
   <script>
-    let currentFilter = "all";
-    window.filterPitches = function(filter) {
-      currentFilter = filter;
+    function filterPitches(filter) {
       document.querySelectorAll(".filter-btn").forEach(btn => {
         btn.className = "filter-btn bg-white/5 hover:bg-white/10 text-gray-300 font-medium px-4 py-1.5 rounded-full text-sm transition";
       });
@@ -121,11 +73,152 @@
       if (active) active.className = "filter-btn bg-[#13ec13] text-[#0d1b0d] font-bold px-4 py-1.5 rounded-full text-sm transition";
 
       document.querySelectorAll(".pitch-card").forEach(card => {
-        const status = card.dataset.status;
-        card.style.display = (filter === "all" || status === filter) ? "block" : "none";
+        card.style.display = (filter === "all" || card.dataset.status === filter) ? "block" : "none";
       });
-    };
+    }
   </script>
-  <script type="module" src="script.js"></script>
+
+  <script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, updateDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const cfg = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "startiq-ae6af.firebaseapp.com",
+      projectId: "startiq-ae6af",
+      storageBucket: "startiq-ae6af.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "1:YOUR_MESSAGING_SENDER_ID:web:66b7b4c093cf41711a3245"
+    };
+    const app  = getApps().length ? getApps()[0] : initializeApp(cfg);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    let currentUser = null;
+
+    window.logout = async () => {
+      await signOut(auth);
+      location.href = "login.html";
+    };
+
+    onAuthStateChanged(auth, user => {
+      if (!user) { location.href = "login.html"; return; }
+      currentUser = user;
+      document.body.style.visibility = "visible";
+      document.getElementById("userName").textContent = user.displayName || user.email;
+      loadPitches();
+    });
+
+    async function loadPitches() {
+      const container = document.getElementById("investorPitches");
+      container.innerHTML = `<div class="flex items-center justify-center gap-2 py-12 text-gray-500 text-sm"><span class="material-symbols-outlined spinning text-lg">refresh</span> Loading pitches...</div>`;
+
+      try {
+        const snap = await getDocs(collection(db, "pitches"));
+        const all  = [];
+        snap.forEach(d => all.push({ ...d.data(), id: d.id }));
+
+        if (all.length === 0) {
+          container.innerHTML = `<div class="text-center py-16 text-gray-500"><span class="material-symbols-outlined text-5xl block mb-3 opacity-30">inbox</span><p class="text-lg font-semibold">No pitches yet</p><p class="text-sm mt-1">Vendors haven't submitted any pitches yet.</p></div>`;
+          return;
+        }
+
+        // Newest first
+        all.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+        container.innerHTML = "";
+        all.forEach(p => {
+          const badge = p.status === "Approved"
+            ? "bg-green-500/10 text-green-400 border-green-500/30"
+            : p.status === "Rejected"
+            ? "bg-red-500/10 text-red-400 border-red-500/30"
+            : "bg-yellow-500/10 text-yellow-400 border-yellow-500/30";
+
+          const date = p.createdAt?.toDate?.()?.toLocaleDateString?.("en-IN") || "Recent";
+
+          const card = document.createElement("div");
+          card.className = "pitch-card bg-white/5 border border-white/10 rounded-xl p-6 mb-4 hover:border-white/20 transition";
+          card.dataset.status = p.status;
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h3 class="text-white font-black text-lg leading-tight">${p.idea}</h3>
+                <p class="text-gray-500 text-xs mt-1">${p.vendorEmail || "Vendor"} · ${date} · ${p.category || "General"}</p>
+              </div>
+              <span class="border text-xs font-bold px-3 py-1 rounded-full flex-shrink-0 ${badge}">${p.status}</span>
+            </div>
+
+            <p class="text-gray-300 text-sm leading-relaxed mb-4">${p.description || ""}</p>
+
+            <div class="grid grid-cols-3 gap-3 mb-4">
+              <div class="bg-white/5 rounded-lg p-3 text-center">
+                <p class="text-gray-400 text-xs mb-1">Investment</p>
+                <p class="text-white font-bold">₹${Number(p.investment).toLocaleString("en-IN")}</p>
+              </div>
+              <div class="bg-white/5 rounded-lg p-3 text-center">
+                <p class="text-gray-400 text-xs mb-1">Profit</p>
+                <p class="text-[#13ec13] font-bold">${p.profit}%</p>
+              </div>
+              <div class="bg-white/5 rounded-lg p-3 text-center">
+                <p class="text-gray-400 text-xs mb-1">Timeline</p>
+                <p class="text-white font-bold text-sm">${p.timeline || "N/A"}</p>
+              </div>
+            </div>
+
+            ${p.status === "Pending" ? `
+            <div class="flex gap-3">
+              <button data-id="${p.id}" data-action="Approved"
+                class="action-btn flex-1 bg-[#13ec13] hover:bg-[#0fd60f] text-[#0d1b0d] font-bold py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-base">check</span> Approve
+              </button>
+              <button data-id="${p.id}" data-action="Rejected"
+                class="action-btn flex-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined text-base">close</span> Reject
+              </button>
+            </div>` : `<p class="text-gray-600 text-xs text-center">Decision already recorded.</p>`}
+          `;
+
+          container.appendChild(card);
+        });
+
+        // Attach approve/reject listeners
+        container.querySelectorAll(".action-btn").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const pitchId  = btn.dataset.id;
+            const newStatus = btn.dataset.action;
+            if (!confirm(`Mark this pitch as "${newStatus}"?`)) return;
+            try {
+              await updateDoc(doc(db, "pitches", pitchId), {
+                status: newStatus,
+                reviewedBy: currentUser.uid,
+                reviewedAt: serverTimestamp()
+              });
+              loadPitches(); // refresh
+            } catch (err) {
+              alert(err.code === "permission-denied"
+                ? "Firestore rules not published. Go to Firebase Console → Firestore → Rules → Publish."
+                : "Error: " + err.message);
+            }
+          });
+        });
+
+      } catch (err) {
+        if (err.code === "permission-denied") {
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <span class="material-symbols-outlined text-yellow-400 text-5xl block mb-3">warning</span>
+              <p class="text-yellow-400 font-bold text-lg">Firestore Rules Not Published</p>
+              <p class="text-gray-400 text-sm mt-2 max-w-sm mx-auto">Go to Firebase Console → Firestore Database → Rules tab → paste the rules → click Publish.</p>
+            </div>`;
+        } else {
+          container.innerHTML = `<p class="text-red-400 text-sm text-center py-8">Error loading pitches: ${err.message}</p>`;
+          console.error(err);
+        }
+      }
+    }
+  </script>
+
 </body>
 </html>
