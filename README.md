@@ -7,7 +7,6 @@
 ![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Firestore-orange?style=for-the-badge&logo=firebase)
 ![Claude AI](https://img.shields.io/badge/Claude%20AI-Anthropic-blueviolet?style=for-the-badge)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-Styling-38bdf8?style=for-the-badge&logo=tailwindcss)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 ---
 
